@@ -20,12 +20,14 @@ namespace webapi
 {
     public partial class Form1 : Form
     {
-        private const string RANKING = "ランク";
+		#region Const
+		private const string RANKING = "ランク";
         private const string IMAGE = "画像";
         private const string TITLE = "タイトル";
         private const string URL = "URL";
+		#endregion
 
-        public Form1()
+		public Form1()
         {
             InitializeComponent();
         }
