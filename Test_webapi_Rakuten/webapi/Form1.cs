@@ -16,38 +16,51 @@ using System.Xml;
 using System.IO;
 using System.Diagnostics;
 
-namespace webapi
-{
-    public partial class Form1 : Form
-    {
-		#region Const
+namespace webapi {
+	public partial class Form1 : Form {
+		#region Const　===================
+		/// <summary>ランク</summary>
 		private const string RANKING = "ランク";
-        private const string IMAGE = "画像";
-        private const string TITLE = "タイトル";
-        private const string URL = "URL";
+		/// <summary>画像</summary>
+		private const string IMAGE = "画像";
+		/// <summary>タイトル</summary>
+		private const string TITLE = "タイトル";
+		/// <summary>URL</summary>
+		private const string URL = "URL";
 		#endregion
 
-		public Form1()
-        {
-            InitializeComponent();
-        }
+		#region Constructor　===================
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public Form1() {
+			InitializeComponent();
+		}
+		#endregion
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            this.rbMale.Checked = true;
-        }
+		#region Event　===================
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            this.textBox2.Text = "";
-            this.dataGridView1.DataSource = null;
+		#region Form1_Load　：　ロードイベント
+		/// <summary>
+		/// ロードイベント
+		/// </summary>
+		private void Form1_Load(object sender, EventArgs e) {
+			this.comboBox1.DataSource = this.Init();
+		}
+		#endregion
 
-            if(string.IsNullOrEmpty( this.tbDevId.Text))
-            {
-                MessageBox.Show("アプリケーションIDを入力してください。");
-                return;
-            }
-            var appId = "&applicationId=" + this.tbDevId.Text;
+		#region button1_Click　：　ボタン1　クリックイベント
+		/// <summary>
+		/// ボタン1　クリックイベント
+		/// </summary>
+		private void button1_Click(object sender, EventArgs e) {
+			this.dataGridView1.DataSource = null;
+
+			if (string.IsNullOrEmpty(this.tbDevId.Text)) {
+				MessageBox.Show("アプリケーションIDを入力してください。");
+				return;
+			}
+			var appId = "&applicationId=" + this.tbDevId.Text;
 
 			string api = string.Format("{0}{1}{2}"
 										, "https://app.rakuten.co.jp/services/api/Gora/GoraPlanSearch/20150706?format=json"
@@ -55,112 +68,95 @@ namespace webapi
 										//, "&gender=" + gender + "&generation=" + this.nudGeneration.Value.ToString());
 										, "&playDate=" + DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd") + "&areaCode=40&hits=5&sort=price");
 
-            var req = WebRequest.Create(api);
+			var req = WebRequest.Create(api);
 
-            using (var res = req.GetResponse())
-            using (var s = res.GetResponseStream())
-            {
-				dynamic dy = s;
+			using (var res = req.GetResponse())
+			using (var s = res.GetResponseStream()) {
+				dynamic json = DynamicJson.Parse(s);
 
-                XElement xdoc = XElement.Load(s);
-                var ns = xdoc.GetDefaultNamespace();
+				try {
+					dynamic items = json.Items;
+					StringBuilder sb = new StringBuilder();
+					for (int ix = 0; ix < 5; ix++) {
+						dynamic item = items[ix].Item;
+						sb.Append(item.golfCourseName).Append("\r\n");
+					}
+					MessageBox.Show(sb.ToString());
+					//	string iconUrl = today.image.url;
 
-                var title = from x in xdoc.Descendants(ns + "Result").Elements(ns + "RankingInfo")
-                            select new
-                            {
-                                startDay = x.Element(ns + "StartDate").Value,
-                                endDay = x.Element(ns + "EndDate").Value,
-                                rsGender = x.Element(ns + "Gender").Value,
-                                rsGeneration = x.Element(ns + "Generation").Value,
-                            };
+					//	string dateLabel = today.dateLabel;
+					//	string date = today.date;
+					//	string telop = today.telop;
 
-                var querys = from x in xdoc.Descendants(ns + "Result").Elements(ns + "RankingData")
-                                 // TODO：ソートできない・・・
-                                 //orderby x.Attribute("rank") descending
-                             select new
-                             {
-                                 rank = x.Attribute("rank").Value,
-                                 name = x.Element(ns + "Name").Value,
-                                 url = x.Element(ns + "Url").Value,
-                                 imageUrl = x.Element(ns + "Image").Element(ns + "Small").Value
-                             };
+					//	var sbTempMax = new StringBuilder();
+					//dynamic todayTemperatureMax = today.temperature.max;
+				} catch (Exception ex) {
+				}
 
-                StringBuilder sb = new StringBuilder();
-                DataTable dt = new DataTable();
-                dt.Columns.Add(RANKING, typeof(String));
-                dt.Columns.Add(IMAGE, typeof(Image));
-                dt.Columns.Add(TITLE, typeof(String));
-                dt.Columns.Add(URL, typeof(String));
 
-                foreach (var item in querys)
-                {
-                    sb.Append(RANKING + item.rank + "位\r\n");
-                    sb.Append("名前　　　：　" + item.name + "\r\n");
-                    sb.Append("URL　　：　" + item.url + "\r\n");
-                    sb.Append("画像URL　　：　" + item.imageUrl + "\r\n\r\n\r\n");
+			}
+		}
+		#endregion
 
-                    DataRow dr = dt.NewRow();
+		#region dataGridView1_CellContentClick　：　グリッド　セルクリックイベント
+		/// <summary>
+		/// グリッド　セルクリックイベント
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) {
+			DataGridView grid = sender as DataGridView;
 
-                    PictureBox pb = new PictureBox();
-                    WebClient wc = new WebClient();
-                    Stream stream = wc.OpenRead(item.imageUrl);
-                    Bitmap bitmap = new Bitmap(stream);
-                    stream.Close();
-                    pb.Image = bitmap;
+			if (grid.Columns[e.ColumnIndex] is DataGridViewLinkColumn) {
+				DataGridViewRow row = grid.Rows[e.RowIndex];
+				DataGridViewCell cell = row.Cells[e.ColumnIndex - 1];
+				Process.Start(cell.Value.ToString());
+			}
+		}
+		#endregion
 
-                    dr[RANKING] = item.rank + "位";
-                    dr[IMAGE] = pb.Image;
-                    dr[TITLE] = item.name;
-                    dr[URL] = item.url;
-                    dt.Rows.Add(dr);
-                }
+		#endregion
 
-                StringBuilder sb2 = new StringBuilder();
-                foreach (var item in title)
-                {
-                    sb2.Append("性別：" + item.rsGender);
-                    sb2.Append("　年代：" + item.rsGeneration + "代" + Environment.NewLine);
-                    sb2.Append(item.startDay).Append("　～　").Append(item.endDay);
-                }
+		#region Method　===================
 
-                this.label1.Text = sb2.ToString();
-                this.textBox2.Text = sb.ToString();
+		#region Init　：　初期処理
+		/// <summary>
+		/// 初期処理
+		/// </summary>
+		/// <returns>DataTable</returns>
+		private DataTable Init() {
+			DataTable dt = new DataTable();
+			// TODO:20160116
+			dt.Columns.Add("id", typeof(string));
+			dt.Columns.Add("name", typeof(string));
 
-                this.dataGridView1.DataSource = dt;
-                this.dataGridView1.Columns[RANKING].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                this.dataGridView1.Columns[IMAGE].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                this.dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-                this.dataGridView1.Columns[TITLE].Visible = false;
-                this.dataGridView1.Columns[URL].Visible = false;
-                this.dataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.PeachPuff;
-                // タイトル列はリンクとする
-                var column = new DataGridViewLinkColumn();
-                column.Name = TITLE;
-                column.VisitedLinkColor = Color.DeepPink;
-                column.DataPropertyName = dt.Columns[TITLE].ColumnName;
-                column.LinkBehavior = LinkBehavior.SystemDefault;
-                column.TrackVisitedState = true;
-                column.Width = 200;
-                column.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                this.dataGridView1.Columns.Add(column);
-            }
-        }
+			Dictionary<string, string> dict = new Dictionary<string, string>();
+			dict.Add("011000", "稚内");
+			dict.Add("016010", "札幌");
+			dict.Add("020010", "青森");
+			dict.Add("070010", "福島");
+			dict.Add("110010", "さいたま");
+			dict.Add("130010", "東京");
+			dict.Add("180010", "福井");
+			dict.Add("230010", "名古屋");
+			dict.Add("270000", "大阪");
+			dict.Add("310010", "鳥取");
+			dict.Add("390010", "高知");
+			dict.Add("400010", "福岡");
+			dict.Add("460010", "鹿児島");
+			dict.Add("471010", "沖縄");
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            DataGridView grid = sender as DataGridView;
+			foreach (string id in dict.Keys) {
+				DataRow dr = dt.NewRow();
+				dr["id"] = id;
+				dr["name"] = dict[id];
+				dt.Rows.Add(dr);
+			}
 
-            if (grid.Columns[e.ColumnIndex] is DataGridViewLinkColumn)
-            {
-                DataGridViewRow row = grid.Rows[e.RowIndex];
-                DataGridViewCell cell = row.Cells[e.ColumnIndex -1];
-                Process.Start(cell.Value.ToString());
-            }
-        }
-    }
+			return dt;
+		}
+		#endregion
+
+		#endregion
+	}
 }
