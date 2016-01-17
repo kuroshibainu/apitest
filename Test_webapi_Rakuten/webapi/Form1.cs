@@ -19,14 +19,16 @@ using System.Diagnostics;
 namespace webapi {
 	public partial class Form1 : Form {
 		#region Const　===================
-		/// <summary>ランク</summary>
-		private const string RANKING = "ランク";
-		/// <summary>画像</summary>
-		private const string IMAGE = "画像";
-		/// <summary>タイトル</summary>
-		private const string TITLE = "タイトル";
-		/// <summary>URL</summary>
-		private const string URL = "URL";
+		/// <summary>コース</summary>
+		private const string COURSE = "コース";
+		/// <summary>平日価格</summary>
+		private const string WEEKDAY_PRICE = "平日価格";
+		/// <summary>画像URL</summary>
+		private const string IMG_URL = "画像URL";
+		/// <summary>緯度</summary>
+		private const string LATITUDE = "緯度";
+		/// <summary>経度</summary>
+		private const string LONGITUDE = "経度";
 		#endregion
 
 		#region Constructor　===================
@@ -46,6 +48,10 @@ namespace webapi {
 		/// </summary>
 		private void Form1_Load(object sender, EventArgs e) {
 			this.comboBox1.DataSource = this.Init();
+			this.comboBox1.DisplayMember = "name";
+			this.comboBox1.ValueMember = "id";
+
+			this.comboBox1.SelectedIndex = 0;
 		}
 		#endregion
 
@@ -61,12 +67,16 @@ namespace webapi {
 				return;
 			}
 			var appId = "&applicationId=" + this.tbDevId.Text;
+			var getCnt = 30;
 
 			string api = string.Format("{0}{1}{2}"
 										, "https://app.rakuten.co.jp/services/api/Gora/GoraPlanSearch/20150706?format=json"
 										, appId
-										//, "&gender=" + gender + "&generation=" + this.nudGeneration.Value.ToString());
-										, "&playDate=" + DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd") + "&areaCode=40&hits=5&sort=price");
+										, "&playDate=" + DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd")
+										+ "&areaCode=" + this.comboBox1.SelectedValue
+										+ "&hits=" + getCnt
+										+ "&sort=price"
+										+ "&formatVersion=2");
 
 			var req = WebRequest.Create(api);
 
@@ -76,20 +86,40 @@ namespace webapi {
 
 				try {
 					dynamic items = json.Items;
-					StringBuilder sb = new StringBuilder();
-					for (int ix = 0; ix < 5; ix++) {
-						dynamic item = items[ix].Item;
-						sb.Append(item.golfCourseName).Append("\r\n");
+					DataTable dt = new DataTable();
+					dt.Columns.Add(COURSE, typeof(String));
+					//dt.Columns.Add(WEEKDAY_PRICE, typeof(String));
+					//dt.Columns.Add(IMG_URL, typeof(String));
+					dt.Columns.Add(IMG_URL, typeof(Image));
+					//dt.Columns.Add(LATITUDE, typeof(decimal));
+					//dt.Columns.Add(LONGITUDE, typeof(decimal));
+
+					for (int ix = 0; ix < json.hits; ix++) {
+						DataRow dr = dt.NewRow();
+						dr[COURSE] = items[ix].golfCourseName
+										+ Environment.NewLine
+										+ Environment.NewLine
+										+ items[ix].golfCourseCaption;
+						//dr[WEEKDAY_PRICE] = items[ix].displayWeekdayMinBasePrice;
+						//dr[IMG_URL] = items[ix].golfCourseImageUrl;
+						PictureBox pb = new PictureBox();
+						WebClient wc = new WebClient();
+						Stream stream = wc.OpenRead(items[ix].golfCourseImageUrl);
+						Bitmap bitmap = new Bitmap(stream);
+						stream.Close();
+						pb.Image = bitmap;
+						dr[IMG_URL] = pb.Image;
+
+						//dr[LATITUDE] = items[ix].latitude;
+						//dr[LONGITUDE] = items[ix].longitude;
+						dt.Rows.Add(dr);
 					}
-					MessageBox.Show(sb.ToString());
-					//	string iconUrl = today.image.url;
 
-					//	string dateLabel = today.dateLabel;
-					//	string date = today.date;
-					//	string telop = today.telop;
-
-					//	var sbTempMax = new StringBuilder();
-					//dynamic todayTemperatureMax = today.temperature.max;
+					this.dataGridView1.DataSource = dt;
+					//this.dataGridView1.Columns[COURSE].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+					this.dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+					this.dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+					this.dataGridView1.Columns[COURSE].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
 				} catch (Exception ex) {
 				}
 
@@ -126,25 +156,18 @@ namespace webapi {
 		/// <returns>DataTable</returns>
 		private DataTable Init() {
 			DataTable dt = new DataTable();
-			// TODO:20160116
 			dt.Columns.Add("id", typeof(string));
 			dt.Columns.Add("name", typeof(string));
 
 			Dictionary<string, string> dict = new Dictionary<string, string>();
-			dict.Add("011000", "稚内");
-			dict.Add("016010", "札幌");
-			dict.Add("020010", "青森");
-			dict.Add("070010", "福島");
-			dict.Add("110010", "さいたま");
-			dict.Add("130010", "東京");
-			dict.Add("180010", "福井");
-			dict.Add("230010", "名古屋");
-			dict.Add("270000", "大阪");
-			dict.Add("310010", "鳥取");
-			dict.Add("390010", "高知");
-			dict.Add("400010", "福岡");
-			dict.Add("460010", "鹿児島");
-			dict.Add("471010", "沖縄");
+			dict.Add("40", "福岡県");
+			dict.Add("41", "佐賀県");
+			dict.Add("42", "長崎県");
+			dict.Add("43", "熊本県");
+			dict.Add("44", "大分県");
+			dict.Add("45", "宮崎県");
+			dict.Add("46", "鹿児島県");
+			dict.Add("47", "沖縄県");
 
 			foreach (string id in dict.Keys) {
 				DataRow dr = dt.NewRow();
