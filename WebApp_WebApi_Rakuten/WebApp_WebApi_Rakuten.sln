@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp_WebApi_Rakuten", "WebApp_WebApi_Rakuten\WebApp_WebApi_Rakuten.csproj", "{F506E6C9-118A-48B0-AEE3-BAF821CDDBCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp_WebApi_Rakuten.Tests", "WebApp_WebApi_Rakuten.Tests\WebApp_WebApi_Rakuten.Tests.csproj", "{CA61FFBF-F2C9-4C93-9EEA-2A75DF82682A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F506E6C9-118A-48B0-AEE3-BAF821CDDBCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F506E6C9-118A-48B0-AEE3-BAF821CDDBCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F506E6C9-118A-48B0-AEE3-BAF821CDDBCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F506E6C9-118A-48B0-AEE3-BAF821CDDBCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA61FFBF-F2C9-4C93-9EEA-2A75DF82682A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA61FFBF-F2C9-4C93-9EEA-2A75DF82682A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA61FFBF-F2C9-4C93-9EEA-2A75DF82682A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA61FFBF-F2C9-4C93-9EEA-2A75DF82682A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
